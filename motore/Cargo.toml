@@ -1,0 +1,28 @@
+[package]
+name = "motore"
+version = "0.1.0"
+edition = "2021"
+description = """
+Motore is a library of modular and reusable components for building robust
+clients and servers. Motore is greatly inspired by Tower.
+"""
+documentation = "https://docs.rs/motore"
+readme = "../README.md"
+homepage = "https://cloudwego.io/docs/motore/"
+repository = "https://github.com/cloudwego/motore"
+license = "MIT OR Apache-2.0"
+authors = ["Motore Team <motore@cloudwego.io>"]
+categories = ["asynchronous", "network-programming", "web-programming"]
+keywords = ["io", "async", "non-blocking", "futures", "service"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[badges]
+maintenance = { status = "actively-developed" }
+
+[dependencies]
+motore-macros = { path = "../motore-macros", version = "0.1" }
+
+futures = "0.3"
+tokio = { version = "1", features = ["time", "macros"] }
+pin-project = "1"
