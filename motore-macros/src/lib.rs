@@ -43,6 +43,7 @@ pub fn service(_args: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 fn expand(item: &mut ItemImpl) -> Result<(), syn::Error> {
+    let generic_params = &item.generics.params;
     let call_method = item
         .items
         .iter_mut()
@@ -68,7 +69,7 @@ fn expand(item: &mut ItemImpl) -> Result<(), syn::Error> {
         ));
     }
 
-    match &mut sig.inputs[1] {
+    let cx_type = match &mut sig.inputs[1] {
         syn::FnArg::Typed(PatType { ty, .. }) => match &mut **ty {
             Type::Reference(ty) if ty.mutability.is_some() => {
                 ty.lifetime = Some(parse_quote!('cx));
@@ -88,6 +89,14 @@ fn expand(item: &mut ItemImpl) -> Result<(), syn::Error> {
             ))
         }
     };
+
+    let cx_is_generic = generic_params
+        .iter()
+        .filter_map(|p| match p {
+            syn::GenericParam::Type(t) => Some(t),
+            _ => None,
+        })
+        .any(|t| matches!(&cx_type, Type::Path(p) if p.path.segments.len() == 1 && p.path.segments[0].ident == t.ident));
 
     let (res_ty, err_ty) = match &sig.output {
         syn::ReturnType::Type(_, ty) => match &**ty {
@@ -135,10 +144,12 @@ fn expand(item: &mut ItemImpl) -> Result<(), syn::Error> {
         type Error = #err_ty;
     ));
 
+    let cx_bound = cx_is_generic.then(|| Some(quote!(Cx: 'cx,))).into_iter();
+
     item.items.push(parse_quote!(
        type Future<'cx> = impl ::std::future::Future<Output = Result<Self::Response, Self::Error>> + Send
         where
-            Cx: 'cx,
+            #(#cx_bound)*
             Self:'cx;
     ));
 

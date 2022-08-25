@@ -52,3 +52,24 @@ pub type BoxError = Box<dyn std::error::Error + Send + Sync>;
 mod sealed {
     pub trait Sealed<T> {}
 }
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    pub fn test_service_macro() {
+        pub struct Context;
+        pub struct Service<S>(S);
+
+        #[crate::service]
+        impl<S, Req> crate::Service<Context, Req> for Service<S>
+        where
+            Req: 'static,
+            S: crate::Service<Context, Req>,
+        {
+            async fn call(&mut self, cx: &mut Context, req: Req) -> Result<S::Response, S::Error> {
+                todo!();
+            }
+        }
+    }
+}
