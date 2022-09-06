@@ -8,7 +8,7 @@
 [actions-badge]: https://github.com/cloudwego/motore/actions/workflows/ci.yaml/badge.svg
 [actions-url]: https://github.com/cloudwego/motore/actions
 
-Motore is an async middleware abstraction powered by GAT and TAIT.
+Motore is an async middleware abstraction powered by GAT and TRAIT.
 
 Around Motore, we build modular and reusable components for building robust networking clients and servers.
 
@@ -18,7 +18,7 @@ Motore is greatly inspired by [`Tower`][tower].
 
 ## Overview
 
-Motore uses GAT and TAIT to reduce the mental burden of writing asynchronous code, especially to avoid the overhead of `Box` to make people less anxious.
+Motore uses GAT and TRAIT to reduce the mental burden of writing asynchronous code, especially to avoid the overhead of `Box` to make people less anxious.
 
 The core abstraciton of Motore is the `Service` trait:
 
