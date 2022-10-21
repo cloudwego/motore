@@ -115,7 +115,7 @@ dependencies = [
 
 [[package]]
 name = "motore-macros"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "motore",
  "proc-macro2",
