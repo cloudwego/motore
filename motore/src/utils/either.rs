@@ -32,8 +32,8 @@ impl<A, B, Cx, Req> Service<Cx, Req> for Either<A, B>
 where
     Req: 'static + Send,
     Cx: Send + 'static,
-    A: Service<Cx, Req> + Send + 'static,
-    B: Service<Cx, Req, Response = A::Response, Error = A::Error> + Send + 'static,
+    A: Service<Cx, Req> + Send + 'static + Sync,
+    B: Service<Cx, Req, Response = A::Response, Error = A::Error> + Send + 'static + Sync,
 {
     type Response = A::Response;
 
@@ -44,7 +44,7 @@ where
         Cx: 'cx,
         Self: 'cx;
 
-    fn call<'cx, 's>(&'s mut self, cx: &'cx mut Cx, req: Req) -> Self::Future<'cx>
+    fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: Req) -> Self::Future<'cx>
     where
         's: 'cx,
     {

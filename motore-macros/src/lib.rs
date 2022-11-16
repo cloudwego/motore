@@ -23,7 +23,7 @@ use syn::{parse_macro_input, parse_quote, spanned::Spanned, ItemImpl, PatType, T
 /// impl<Cx, Req, I> Service<Cx, Req> for S<I>
 /// where
 ///     Req: Send + 'static,
-///     I: Send + 'static + Service<Cx, Req>,
+///     I: Send + 'static + Service<Cx, Req> + Sync,
 ///     Cx: Send + 'static,
 /// {
 ///     async fn call(&mut self, cx: &mut Cx, req: Req) -> Result<I::Response, I::Error> {
@@ -132,7 +132,7 @@ fn expand(item: &mut ItemImpl) -> Result<(), syn::Error> {
     sig.generics = parse_quote!(<'cx, 's>);
     sig.generics.where_clause = Some(parse_quote!(where 's: 'cx));
     sig.output = parse_quote!(-> Self::Future<'cx>);
-    sig.inputs[0] = parse_quote!(&'s mut self);
+    sig.inputs[0] = parse_quote!(&'s self);
     let old_stmts = &call_method.block.stmts;
     call_method.block.stmts = vec![parse_quote!(async move { #(#old_stmts)* })];
 

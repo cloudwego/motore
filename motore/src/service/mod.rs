@@ -97,7 +97,7 @@ pub trait Service<Cx, Request> {
         Self: 'cx;
 
     /// Process the request and return the response asynchronously.
-    fn call<'cx, 's>(&'s mut self, cx: &'cx mut Cx, req: Request) -> Self::Future<'cx>
+    fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: Request) -> Self::Future<'cx>
     where
         's: 'cx;
 }
@@ -173,7 +173,7 @@ impl<Cx, T, U, E> Service<Cx, T> for BoxCloneService<Cx, T, U, E> {
     where
         Self: 'cx;
 
-    fn call<'cx, 's>(&'s mut self, cx: &'cx mut Cx, req: T) -> Self::Future<'cx>
+    fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: T) -> Self::Future<'cx>
     where
         's: 'cx,
     {

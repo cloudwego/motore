@@ -14,7 +14,6 @@ use super::Layer;
 /// # Example
 ///
 /// ```rust
-/// # #![feature(generic_associated_types)]
 /// # #![feature(type_alias_impl_trait)]
 /// #
 /// # use futures::Future;
@@ -41,7 +40,7 @@ use super::Layer;
 ///     Cx: 'cx,
 ///     S: 'cx;
 ///
-///     fn call<'cx, 's>(&'s mut self, cx: &'cx mut Cx, req: Request) -> Self::Future<'cx>
+///     fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: Request) -> Self::Future<'cx>
 ///     where
 ///         's: 'cx,
 ///     {
