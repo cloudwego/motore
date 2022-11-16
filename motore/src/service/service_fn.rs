@@ -57,7 +57,7 @@ where
         Cx: 'cx,
         Self: 'cx;
 
-    fn call<'cx, 's>(&'s mut self, cx: &'cx mut Cx, req: Request) -> Self::Future<'cx>
+    fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: Request) -> Self::Future<'cx>
     where
         's: 'cx,
     {
@@ -83,12 +83,12 @@ pub trait Callback<'r, Cx, Request> {
     type Error;
     type Future: Future<Output = Result<Self::Response, Self::Error>> + Send + 'r;
 
-    fn call(&mut self, cx: &'r mut Cx, req: Request) -> Self::Future;
+    fn call(&self, cx: &'r mut Cx, req: Request) -> Self::Future;
 }
 
 impl<'r, F, Fut, Cx, Request, R, E> Callback<'r, Cx, Request> for F
 where
-    F: FnMut(&'r mut Cx, Request) -> Fut,
+    F: Fn(&'r mut Cx, Request) -> Fut,
     Fut: Future<Output = Result<R, E>> + Send + 'r,
     Cx: 'r,
 {
@@ -96,7 +96,7 @@ where
     type Error = E;
     type Future = Fut;
 
-    fn call(&mut self, cx: &'r mut Cx, req: Request) -> Self::Future {
+    fn call(&self, cx: &'r mut Cx, req: Request) -> Self::Future {
         self(cx, req)
     }
 }
@@ -117,7 +117,7 @@ mod tests {
             Ok::<_, Infallible>(request.to_uppercase())
         }
 
-        let mut uppercase_service = service_fn(handle);
+        let uppercase_service = service_fn(handle);
         let _ = uppercase_service.call(&mut MotoreContext, "req".to_string());
         assert_eq!(
             "ServiceFn { f: motore::service::service_fn::tests::debug_impl_ok::handle }"
