@@ -114,7 +114,7 @@ pub trait UnaryService<Request> {
     fn call(&self, req: Request) -> Self::Future<'_>;
 }
 
-/// A [`Clone`] + [`Send`] boxed [`Service`].
+/// A [`Clone`] + [`Send`] + [`Sync`] boxed [`Service`].
 ///
 /// [`BoxCloneService`] turns a service into a trait object, allowing the
 /// response future type to be dynamic, and allowing the service to be cloned.
@@ -126,13 +126,11 @@ pub struct BoxCloneService<Cx, T, U, E> {
     vtable: ServiceVtable<Cx, T, U, E>,
 }
 
-unsafe impl<Cx, T, U, E> Sync for BoxCloneService<Cx, T, U, E> {}
-
 impl<Cx, T, U, E> BoxCloneService<Cx, T, U, E> {
     /// Create a new `BoxCloneService`.
     pub fn new<S>(s: S) -> Self
     where
-        S: Service<Cx, T, Response = U, Error = E> + Clone + Send + 'static,
+        S: Service<Cx, T, Response = U, Error = E> + Clone + Send + Sync + 'static,
         T: 'static,
         for<'cx> S::Future<'cx>: Send,
     {
@@ -185,8 +183,10 @@ impl<Cx, T, U, E> Service<Cx, T> for BoxCloneService<Cx, T, U, E> {
 
 /// # Safety
 ///
-/// The contained `Service` must be `Send` required by the bounds of `new` and `clone`.
+/// The contained `Service` must be `Send` and `Sync` required by the bounds of `new` and `clone`.
 unsafe impl<Cx, T, U, E> Send for BoxCloneService<Cx, T, U, E> {}
+
+unsafe impl<Cx, T, U, E> Sync for BoxCloneService<Cx, T, U, E> {}
 
 struct ServiceVtable<Cx, T, U, E> {
     call: unsafe fn(raw: *mut (), cx: &mut Cx, req: T) -> BoxFuture<'_, Result<U, E>>,
@@ -208,7 +208,7 @@ where
     Box::pin(fut)
 }
 
-fn clone<Cx, Req, S: Clone + Send + Service<Cx, Req> + 'static>(
+fn clone<Cx, Req, S: Clone + Send + Service<Cx, Req> + 'static + Sync>(
     raw: *mut (),
 ) -> BoxCloneService<Cx, Req, S::Response, S::Error>
 where
