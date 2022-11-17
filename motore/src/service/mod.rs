@@ -126,6 +126,8 @@ pub struct BoxCloneService<Cx, T, U, E> {
     vtable: ServiceVtable<Cx, T, U, E>,
 }
 
+unsafe impl<Cx, T, U, E> Sync for BoxCloneService<Cx, T, U, E> {}
+
 impl<Cx, T, U, E> BoxCloneService<Cx, T, U, E> {
     /// Create a new `BoxCloneService`.
     pub fn new<S>(s: S) -> Self
