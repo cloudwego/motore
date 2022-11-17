@@ -10,9 +10,13 @@ use futures::future::BoxFuture;
 
 mod ext;
 mod service_fn;
+#[cfg(feature = "tower")]
+mod tower_adapter;
 
 pub use ext::*;
 pub use service_fn::{service_fn, ServiceFn};
+#[cfg(feature = "tower")]
+pub use tower_adapter::*;
 
 /// An asynchronous function from a `Request` to a `Response`.
 ///
