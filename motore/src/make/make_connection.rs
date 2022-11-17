@@ -16,7 +16,7 @@ pub trait MakeConnection<Address>: Sealed<(Address,)> {
         Self: 's,
         Address: 's;
 
-    fn make_connection(&mut self, req: Address) -> Self::Future<'_>;
+    fn make_connection(&self, req: Address) -> Self::Future<'_>;
 }
 
 impl<S, Address> Sealed<(Address,)> for S where S: UnaryService<Address> {}
@@ -30,7 +30,7 @@ where
     type Error = S::Error;
     type Future<'s> = impl Future<Output = Result<Self::Connection, Self::Error>> + Send + 's where Self: 's, Address:'s;
 
-    fn make_connection(&mut self, addr: Address) -> Self::Future<'_> {
+    fn make_connection(&self, addr: Address) -> Self::Future<'_> {
         self.call(addr)
     }
 }
