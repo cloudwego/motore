@@ -36,7 +36,7 @@ pub trait Service<Cx, Request> {
         Self: 'cx;
 
     /// Process the request and return the response asynchronously.
-    fn call<'cx, 's>(&'s mut self, cx: &'cx mut Cx, req: Request) -> Self::Future<'cx>
+    fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: Request) -> Self::Future<'cx>
     where
         's: 'cx;
 }
@@ -95,10 +95,10 @@ pub struct S<I> {
 impl<Cx, Req, I> Service<Cx, Req> for S<I>
 where
    Req: Send + 'static,
-   I: Service<Cx, Req> + Send + 'static,
+   I: Service<Cx, Req> + Send + 'static + Sync,
    Cx: Send + 'static,
 {
-    async fn call(&mut self, cx: &mut Cx, req: Req) -> Result<I::Response, I::Error> {
+    async fn call(&self, cx: &mut Cx, req: Req) -> Result<I::Response, I::Error> {
         self.inner.call(cx, req).await
     }
 }

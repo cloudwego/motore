@@ -40,13 +40,13 @@ pub use service_fn::{service_fn, ServiceFn};
 ///
 /// As an example, here is how an HTTP request is processed by a server:
 ///
-/// ```rust,ignore
-/// #![feature(generic_associated_types)]
+/// ```rust
 /// #![feature(type_alias_impl_trait)]
+///
+/// use std::future::Future;
 ///
 /// use http::{Request, Response, StatusCode};
 /// use motore::Service;
-/// use std::future::Future;
 ///
 /// struct HelloWorld;
 ///
@@ -58,7 +58,7 @@ pub use service_fn::{service_fn, ServiceFn};
 ///     type Error = http::Error;
 ///     type Future<'cx> = impl Future<Output = Result<Self::Response, Self::Error>> + 'cx;
 ///
-///     fn call<'cx, 's>(&'s mut self, _cx: &'cx mut Cx, _req: Request<Vec<u8>>) -> Self::Future<'cx>
+///     fn call<'cx, 's>(&'s self, _cx: &'cx mut Cx, _req: Request<Vec<u8>>) -> Self::Future<'cx>
 ///     where
 ///         's: 'cx,
 ///     {
@@ -111,7 +111,7 @@ pub trait UnaryService<Request> {
     where
         Self: 's;
 
-    fn call(&mut self, req: Request) -> Self::Future<'_>;
+    fn call(&self, req: Request) -> Self::Future<'_>;
 }
 
 /// A [`Clone`] + [`Send`] boxed [`Service`].

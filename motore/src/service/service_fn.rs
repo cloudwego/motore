@@ -11,7 +11,6 @@ use crate::service::Service;
 /// # Example
 ///
 /// ```rust
-/// # #![feature(generic_associated_types)]
 /// # #![feature(type_alias_impl_trait)]
 /// #
 /// # use futures::Future;
