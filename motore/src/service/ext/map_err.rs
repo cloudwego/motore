@@ -1,4 +1,4 @@
-use futures::Future;
+use futures::{Future, TryFutureExt};
 
 use crate::Service;
 
@@ -13,12 +13,8 @@ pub struct MapErr<S, F> {
 
 impl<Cx, Req, S, F, E> Service<Cx, Req> for MapErr<S, F>
 where
-    E: 'static,
-    Req: Send + 'static,
-    S: Service<Cx, Req> + Send + Sync,
-    Cx: Send,
-    for<'cx> S::Future<'cx>: Send,
-    F: FnOnce(S::Error) -> E + Clone + Send + Sync,
+    S: Service<Cx, Req>,
+    F: FnOnce(S::Error) -> E + Clone + Send,
 {
     type Response = S::Response;
 
@@ -33,12 +29,6 @@ where
     where
         's: 'cx,
     {
-        let f = self.f.clone();
-        async move {
-            match self.inner.call(cx, req).await {
-                Ok(r) => Ok(r),
-                Err(e) => Err((f)(e)),
-            }
-        }
+        self.inner.call(cx, req).map_err(self.f.clone())
     }
 }
