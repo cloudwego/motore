@@ -39,7 +39,7 @@ where
 
     type Error = A::Error;
 
-    type Future<'cx> = impl Future<Output = Result<Self::Response, Self::Error>> + Send + 'cx
+    type Future<'cx> = impl Future<Output = Result<Self::Response, Self::Error>> + 'cx
     where
         Cx: 'cx,
         Self: 'cx;

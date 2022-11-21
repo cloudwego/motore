@@ -19,7 +19,7 @@ where
 {
     type Response = Response;
     type Error = S::Error;
-    type Future<'cx> = impl Future<Output = Result<Self::Response, Self::Error>> + Send + 'cx
+    type Future<'cx> = impl Future<Output = Result<Self::Response, Self::Error>> + 'cx
     where
         Cx: 'cx,
         Self: 'cx;

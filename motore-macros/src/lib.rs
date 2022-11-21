@@ -147,7 +147,7 @@ fn expand(item: &mut ItemImpl) -> Result<(), syn::Error> {
     let cx_bound = cx_is_generic.then(|| Some(quote!(Cx: 'cx,))).into_iter();
 
     item.items.push(parse_quote!(
-       type Future<'cx> = impl ::std::future::Future<Output = Result<Self::Response, Self::Error>> + Send + 'cx
+       type Future<'cx> = impl ::std::future::Future<Output = Result<Self::Response, Self::Error>> + 'cx
         where
             #(#cx_bound)*
             Self:'cx;
