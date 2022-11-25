@@ -91,7 +91,7 @@ pub trait Service<Cx, Request> {
     type Error;
 
     /// The future response value.
-    type Future<'cx>: Future<Output = Result<Self::Response, Self::Error>> + 'cx
+    type Future<'cx>: Future<Output = Result<Self::Response, Self::Error>> + Send + 'cx
     where
         Cx: 'cx,
         Self: 'cx;
