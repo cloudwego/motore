@@ -26,7 +26,10 @@ motore-macros = { path = "../motore-macros", version = "0.2" }
 futures = "0.3"
 tokio = { version = "1", features = ["time", "macros"] }
 pin-project = "1"
-
+tower = { version = "0.4", optional = true }
 
 [dev-dependencies]
 http = "0.2"
+
+[features]
+tower = ["dep:tower"]

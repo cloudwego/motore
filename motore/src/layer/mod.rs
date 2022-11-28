@@ -12,7 +12,11 @@ mod identity;
 mod layer_fn;
 mod layers;
 mod stack;
+#[cfg(feature = "tower")]
+mod tower_adapter;
 
+#[cfg(feature = "tower")]
+pub use self::tower_adapter::*;
 pub use self::{
     ext::{LayerExt, MapErrLayer},
     identity::Identity,
