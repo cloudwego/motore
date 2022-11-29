@@ -134,7 +134,7 @@ impl<S, F> Motore<S, F> {
 impl<S, F, Cx, MotoreReq, TowerReq> Service<Cx, MotoreReq> for Motore<S, F>
 where
     S: tower::Service<TowerReq> + Clone,
-    for<'cx> <S as tower::Service<TowerReq>>::Future: 'cx,
+    for<'cx> <S as tower::Service<TowerReq>>::Future: Send + 'cx,
     F: FnOnce(&mut Cx, MotoreReq) -> TowerReq + Clone,
 {
     type Response = S::Response;
