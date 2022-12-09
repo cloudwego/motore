@@ -4,7 +4,7 @@ use crate::Service;
 
 /// Service returned by the [`map_err`] combinator.
 ///
-/// [`map_err`]: crate::service::ext::ServiceExt::map_err
+/// [`map_err`]: crate::service::ServiceExt::map_err
 #[derive(Clone)]
 pub struct MapErr<S, F> {
     pub(crate) inner: S,

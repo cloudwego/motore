@@ -5,7 +5,7 @@
 //!
 //! A middleware implements the [`Layer`] and [`Service`] trait.
 //!
-//! [`Service`]: https://docs.rs/motore/latest/motore/trait.Service.html
+//! [`Service`]: crate::Service
 
 mod ext;
 mod identity;
@@ -57,6 +57,7 @@ pub use self::{
 ///     }
 /// }
 /// ```
+/// [`Service`]: crate::Service
 pub trait Layer<S> {
     /// The wrapped service
     type Service;

@@ -21,7 +21,7 @@
 //! response or an error. This abstraction can be used to model both clients and
 //! servers.
 //!
-//! Generic components, like [timeouts], [rate limiting], and [load balancing],
+//! Generic components, like `timeouts`, `rate limiting`, and `load balancing`,
 //! can be modeled as [`Service`]s that wrap some inner service and apply
 //! additional behavior before or after the inner service is called. This allows
 //! implementing these components in a protocol-agnostic, composable way. Typically,
@@ -35,6 +35,8 @@
 //! service by composing it with multiple [`Layer`]s.
 //!
 //! [`tower`]: https://crates.io/crates/tower
+//! [`Layer`]: crate::layer::Layer
+//! [`ServiceBuilder`]: crate::builder::ServiceBuilder
 
 pub mod builder;
 pub mod layer;

@@ -5,7 +5,7 @@ use futures::{Future, TryFutureExt};
 use crate::Service;
 /// Service returned by the [`map_response`] combinator.
 ///
-/// [`map_response`]: crate::service::ext::ServiceExt::map_response
+/// [`map_response`]: crate::service::ServiceExt::map_response
 #[derive(Clone)]
 pub struct MapResponse<S, F> {
     pub(crate) inner: S,
