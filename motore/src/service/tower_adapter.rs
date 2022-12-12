@@ -107,7 +107,7 @@ where
 }
 
 impl<T: ?Sized, Cx, MotoreReq, TowerReq> MotoreAdapter<Cx, MotoreReq, TowerReq> for T where
-    T: tower::Service<TowerReq>struct
+    T: tower::Service<TowerReq>
 {
 }
 
@@ -122,8 +122,9 @@ pub trait MotoreAdapter<Cx, MotoreReq, TowerReq>: tower::Service<TowerReq> {
     }
 }
 
-#[cfg_attr(docsrs, doc(cfg(feature = "tower")))]
+
 #[derive(Clone)]
+#[cfg_attr(docsrs, doc(cfg(feature = "tower")))]
 pub struct Motore<S, F> {
     inner: S,
     f: F,
