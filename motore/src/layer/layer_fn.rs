@@ -70,6 +70,7 @@ use super::Layer;
 /// // Wrap our service in a `LogService` so requests are logged.
 /// let wrapped_service = log_layer.layer(uppercase_service);
 /// ```
+/// [`Service`]: crate::Service
 pub fn layer_fn<F>(f: F) -> LayerFn<F> {
     LayerFn { f }
 }

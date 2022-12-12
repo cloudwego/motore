@@ -19,7 +19,7 @@ use std::{fmt, marker::PhantomData};
 
 use super::Layer;
 use crate::service::{Motore, Tower};
-
+#[cfg_attr(docsrs, doc(cfg(feature = "tower")))]
 pub struct TowerAdapterLayer<F, Cx, MotoreReq> {
     f: F,
     _phantom: PhantomData<fn(Cx, MotoreReq)>,
@@ -66,6 +66,7 @@ impl<F, Cx, MotoreReq> fmt::Debug for TowerAdapterLayer<F, Cx, MotoreReq> {
 }
 
 #[derive(Clone)]
+#[cfg_attr(docsrs, doc(cfg(feature = "tower")))]
 pub struct MotoreAdapterLayer<F> {
     f: F,
 }

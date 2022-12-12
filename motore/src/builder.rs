@@ -6,7 +6,7 @@ use crate::layer::{Identity, Layer, Stack};
 
 /// Declaratively construct [`Service`] values.
 ///
-/// [`ServiceBuilder`] provides a [builder-like interface][builder] for composing
+/// [`ServiceBuilder`] provides a builder-like interface for composing
 /// layers to be applied to a [`Service`].
 ///
 /// [`Service`]: crate::service::Service

@@ -30,6 +30,7 @@ impl<T: ?Sized, Cx, MotoreReq, TowerReq> TowerAdapter<Cx, MotoreReq, TowerReq> f
 {
 }
 
+#[cfg_attr(docsrs, doc(cfg(feature = "tower")))]
 pub trait TowerAdapter<Cx, MotoreReq, TowerReq>: Service<Cx, MotoreReq> {
     fn tower<F>(self, f: F) -> Tower<Self, F, Cx, MotoreReq>
     where
@@ -40,6 +41,7 @@ pub trait TowerAdapter<Cx, MotoreReq, TowerReq>: Service<Cx, MotoreReq> {
     }
 }
 
+#[cfg_attr(docsrs, doc(cfg(feature = "tower")))]
 pub struct Tower<S, F, Cx, MotoreReq> {
     inner: S,
     f: F,
@@ -109,6 +111,7 @@ impl<T: ?Sized, Cx, MotoreReq, TowerReq> MotoreAdapter<Cx, MotoreReq, TowerReq> 
 {
 }
 
+#[cfg_attr(docsrs, doc(cfg(feature = "tower")))]
 pub trait MotoreAdapter<Cx, MotoreReq, TowerReq>: tower::Service<TowerReq> {
     fn motore<F>(self, f: F) -> Motore<Self, F>
     where
@@ -120,6 +123,7 @@ pub trait MotoreAdapter<Cx, MotoreReq, TowerReq>: tower::Service<TowerReq> {
 }
 
 #[derive(Clone)]
+#[cfg_attr(docsrs, doc(cfg(feature = "tower")))]
 pub struct Motore<S, F> {
     inner: S,
     f: F,

@@ -33,3 +33,7 @@ http = "0.2"
 
 [features]
 tower = ["dep:tower"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
