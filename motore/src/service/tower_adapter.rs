@@ -122,7 +122,6 @@ pub trait MotoreAdapter<Cx, MotoreReq, TowerReq>: tower::Service<TowerReq> {
     }
 }
 
-
 #[derive(Clone)]
 #[cfg_attr(docsrs, doc(cfg(feature = "tower")))]
 pub struct Motore<S, F> {
