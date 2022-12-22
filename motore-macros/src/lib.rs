@@ -12,7 +12,6 @@ use syn::{parse_macro_input, parse_quote, spanned::Spanned, ItemImpl, PatType, T
 ///
 /// ```rust
 /// #![feature(type_alias_impl_trait)]
-/// #![feature(generic_associated_types)]
 /// use motore::{service, Service};
 ///
 /// pub struct S<I> {
@@ -26,7 +25,7 @@ use syn::{parse_macro_input, parse_quote, spanned::Spanned, ItemImpl, PatType, T
 ///     I: Send + 'static + Service<Cx, Req> + Sync,
 ///     Cx: Send + 'static,
 /// {
-///     async fn call(&mut self, cx: &mut Cx, req: Req) -> Result<I::Response, I::Error> {
+///     async fn call(&self, cx: &mut Cx, req: Req) -> Result<I::Response, I::Error> {
 ///         self.inner.call(cx, req).await
 ///     }
 /// }
