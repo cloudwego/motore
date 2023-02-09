@@ -112,7 +112,7 @@ mod tests {
         struct MotoreContext;
 
         async fn handle(cx: &mut MotoreContext, request: String) -> Result<String, Infallible> {
-            println!("{:?}, {:?}", cx, request);
+            println!("{cx:?}, {request:?}");
             Ok::<_, Infallible>(request.to_uppercase())
         }
 
@@ -121,7 +121,7 @@ mod tests {
         assert_eq!(
             "ServiceFn { f: motore::service::service_fn::tests::debug_impl_ok::handle }"
                 .to_string(),
-            format!("{:?}", uppercase_service),
+            format!("{uppercase_service:?}"),
         );
     }
 }
