@@ -118,16 +118,85 @@ pub trait UnaryService<Request> {
     fn call(&self, req: Request) -> Self::Future<'_>;
 }
 
+/// A [`Send`] + [`Sync`] boxed [`Service`].
+///
+/// [`BoxService`] turns a service into a trait object, allowing the
+/// response future type to be dynamic, and allowing the service to be cloned.
+pub struct BoxService<Cx, T, U, E> {
+    raw: *mut (),
+    vtable: ServiceVtable<Cx, T, U, E>,
+}
+
+impl<Cx, T, U, E> BoxService<Cx, T, U, E> {
+    /// Create a new `BoxService`.
+    pub fn new<S>(s: S) -> Self
+    where
+        S: Service<Cx, T, Response = U, Error = E> + Send + Sync + 'static,
+        T: 'static,
+        for<'cx> S::Future<'cx>: Send,
+    {
+        let raw = Box::into_raw(Box::new(s)) as *mut ();
+        BoxService {
+            raw,
+            vtable: ServiceVtable {
+                call: call::<Cx, T, S>,
+                drop: drop::<S>,
+            },
+        }
+    }
+}
+
+impl<Cx, T, U, E> Drop for BoxService<Cx, T, U, E> {
+    fn drop(&mut self) {
+        unsafe { (self.vtable.drop)(self.raw) };
+    }
+}
+
+impl<Cx, T, U, E> fmt::Debug for BoxService<Cx, T, U, E> {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.debug_struct("BoxService").finish()
+    }
+}
+
+impl<Cx, T, U, E> Service<Cx, T> for BoxService<Cx, T, U, E> {
+    type Response = U;
+
+    type Error = E;
+
+    type Future<'cx> = BoxFuture<'cx, Result<U, E>>
+    where
+        Self: 'cx;
+
+    fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: T) -> Self::Future<'cx>
+    where
+        's: 'cx,
+    {
+        unsafe { (self.vtable.call)(self.raw, cx, req) }
+    }
+}
+
+/// # Safety
+///
+/// The contained `Service` must be `Send` and `Sync` required by the bounds of `new` and `clone`.
+unsafe impl<Cx, T, U, E> Send for BoxService<Cx, T, U, E> {}
+
+unsafe impl<Cx, T, U, E> Sync for BoxService<Cx, T, U, E> {}
+
+struct ServiceVtable<Cx, T, U, E> {
+    call: unsafe fn(raw: *mut (), cx: &mut Cx, req: T) -> BoxFuture<'_, Result<U, E>>,
+    drop: unsafe fn(raw: *mut ()),
+}
+
 /// A [`Clone`] + [`Send`] + [`Sync`] boxed [`Service`].
 ///
 /// [`BoxCloneService`] turns a service into a trait object, allowing the
 /// response future type to be dynamic, and allowing the service to be cloned.
 ///
-/// This is similar to [`BoxService`](super::BoxService) except the resulting
+/// This is similar to [`BoxService`](BoxService) except the resulting
 /// service implements [`Clone`].
 pub struct BoxCloneService<Cx, T, U, E> {
     raw: *mut (),
-    vtable: ServiceVtable<Cx, T, U, E>,
+    vtable: CloneServiceVtable<Cx, T, U, E>,
 }
 
 impl<Cx, T, U, E> BoxCloneService<Cx, T, U, E> {
@@ -141,7 +210,7 @@ impl<Cx, T, U, E> BoxCloneService<Cx, T, U, E> {
         let raw = Box::into_raw(Box::new(s)) as *mut ();
         BoxCloneService {
             raw,
-            vtable: ServiceVtable {
+            vtable: CloneServiceVtable {
                 call: call::<Cx, T, S>,
                 clone: clone::<Cx, T, S>,
                 drop: drop::<S>,
@@ -192,7 +261,7 @@ unsafe impl<Cx, T, U, E> Send for BoxCloneService<Cx, T, U, E> {}
 
 unsafe impl<Cx, T, U, E> Sync for BoxCloneService<Cx, T, U, E> {}
 
-struct ServiceVtable<Cx, T, U, E> {
+struct CloneServiceVtable<Cx, T, U, E> {
     call: unsafe fn(raw: *mut (), cx: &mut Cx, req: T) -> BoxFuture<'_, Result<U, E>>,
     clone: unsafe fn(raw: *mut ()) -> BoxCloneService<Cx, T, U, E>,
     drop: unsafe fn(raw: *mut ()),
