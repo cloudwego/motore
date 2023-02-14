@@ -4,7 +4,7 @@
 //! request / response clients and servers. It is simple but powerful and is
 //! used as the foundation for the rest of Motore.
 
-use std::{fmt, future::Future};
+use std::{fmt, future::Future, sync::Arc};
 
 use futures::future::BoxFuture;
 
@@ -106,6 +106,50 @@ pub trait Service<Cx, Request> {
         's: 'cx;
 }
 
+macro_rules! impl_service_ref {
+    ($t: tt) => {
+        impl<Cx, Req, T> Service<Cx, Req> for $t<T>
+        where
+            T: Service<Cx, Req>,
+        {
+            type Response = T::Response;
+
+            type Error = T::Error;
+
+            type Future<'cx> = T::Future<'cx> where Cx: 'cx, Self: 'cx;
+
+            fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: Req) -> Self::Future<'cx>
+            where
+                's: 'cx,
+            {
+                (&**self).call(cx, req)
+            }
+        }
+    };
+}
+
+impl_service_ref!(Arc);
+impl_service_ref!(Box);
+
+macro_rules! impl_unary_service_ref {
+    ($t: tt) => {
+        impl<Req, T> UnaryService<Req> for $t<T>
+        where
+            T: UnaryService<Req>,
+        {
+            type Response = T::Response;
+
+            type Error = T::Error;
+
+            type Future<'s> = T::Future<'s> where Self: 's;
+
+            fn call(&self, req: Req) -> Self::Future<'_> {
+                (&**self).call(req)
+            }
+        }
+    };
+}
+
 /// [`Service`] without need of Context.
 pub trait UnaryService<Request> {
     type Response;
@@ -117,6 +161,9 @@ pub trait UnaryService<Request> {
 
     fn call(&self, req: Request) -> Self::Future<'_>;
 }
+
+impl_unary_service_ref!(Arc);
+impl_unary_service_ref!(Box);
 
 /// A [`Send`] + [`Sync`] boxed [`Service`].
 ///
