@@ -45,7 +45,7 @@ pub use tower_adapter::*;
 /// As an example, here is how an HTTP request is processed by a server:
 ///
 /// ```rust
-/// #![feature(type_alias_impl_trait)]
+/// #![feature(impl_trait_in_assoc_type)]
 ///
 /// use std::future::Future;
 ///

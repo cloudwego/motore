@@ -11,7 +11,7 @@ use syn::{parse_macro_input, parse_quote, spanned::Spanned, ItemImpl, PatType, T
 /// # Example
 ///
 /// ```rust
-/// #![feature(type_alias_impl_trait)]
+/// #![feature(impl_trait_in_assoc_type)]
 /// use motore::{service, Service};
 ///
 /// pub struct S<I> {

@@ -44,7 +44,7 @@ pub trait Service<Cx, Request> {
 
 ## Getting Started
 
-Combing GAT and `type_alias_impl_trait` together, we can write asynchronous code in a very concise and readable way.
+Combing GAT and `impl_trait_in_assoc_type` together, we can write asynchronous code in a very concise and readable way.
 
 ```rust
 pub struct Timeout<S> {

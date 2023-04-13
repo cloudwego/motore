@@ -1,6 +1,6 @@
 [package]
 name = "motore"
-version = "0.3.2"
+version = "0.3.3"
 edition = "2021"
 description = """
 Motore is a library of modular and reusable components for building robust
