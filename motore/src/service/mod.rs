@@ -339,5 +339,5 @@ where
 }
 
 fn drop<S>(raw: *mut ()) {
-    unsafe { Box::from_raw(raw as *mut S) };
+    std::mem::drop(unsafe { Box::from_raw(raw as *mut S) });
 }
