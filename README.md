@@ -18,7 +18,7 @@ Motore is greatly inspired by [`Tower`][tower].
 
 ## Overview
 
-Motore uses GAT and TAIT to reduce the mental burden of writing asynchronous code, especially to avoid the overhead of `Box` to make people less anxious.
+Motore uses AFIT and RPITIT to reduce the mental burden of writing asynchronous code, especially to avoid the overhead of `Box` to make people less anxious.
 
 The core abstraciton of Motore is the `Service` trait:
 
@@ -29,22 +29,14 @@ pub trait Service<Cx, Request> {
     /// Errors produced by the service.
     type Error;
 
-    /// The future response value.
-    type Future<'cx>: Future<Output = Result<Self::Response, Self::Error>> + Send + 'cx
-    where
-        Cx: 'cx,
-        Self: 'cx;
-
     /// Process the request and return the response asynchronously.
-    fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: Request) -> Self::Future<'cx>
-    where
-        's: 'cx;
+    async fn call<'s, 'cx>(&'s self, cx: &'cx mut Cx, req: Request) -> Result<Self::Response, Self::Error>;
 }
 ```
 
 ## Getting Started
 
-Combing GAT and `impl_trait_in_assoc_type` together, we can write asynchronous code in a very concise and readable way.
+Combing AFIT and RPITIT together, we can write asynchronous code in a very concise and readable way.
 
 ```rust
 pub struct Timeout<S> {
@@ -63,20 +55,13 @@ where
 
     type Error = BoxError;
 
-    type Future<'cx> = impl Future<Output = Result<S::Response, Self::Error>> + Send + 'cx;
-
-    fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: Req) -> Self::Future<'cx>
-    where
-        's: 'cx,
-    {
-        async move {
-            let sleep = tokio::time::sleep(self.duration);
-            tokio::select! {
-                r = self.inner.call(cx, req) => {
-                    r.map_err(Into::into)
-                },
-                _ = sleep => Err(std::io::Error::new(std::io::ErrorKind::TimedOut, "service time out").into()),
-            }
+    async fn call<'s, 'cx>(&'s self, cx: &'cx mut Cx, req: Req) -> Result<Self::Response, Self::Error> {
+        let sleep = tokio::time::sleep(self.duration);
+        tokio::select! {
+            r = self.inner.call(cx, req) => {
+                r.map_err(Into::into)
+            },
+            _ = sleep => Err(std::io::Error::new(std::io::ErrorKind::TimedOut, "service time out").into()),
         }
     }
 }
@@ -105,10 +90,6 @@ where
 ```
 
 ## FAQ
-
-### Why do we need GAT?
-
-https://www.cloudwego.io/zh/docs/motore/faq/q1_gat/
 
 ### Where's the `poll_ready`(a.k.a. backpressure)?
 

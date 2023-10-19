@@ -11,12 +11,17 @@ use crate::{sealed::Sealed, UnaryService};
 pub trait MakeConnection<Address>: Sealed<(Address,)> {
     type Connection: AsyncRead + AsyncWrite + Unpin + Send;
     type Error;
-    type Future<'s>: Future<Output = Result<Self::Connection, Self::Error>> + Send + 's
-    where
-        Self: 's,
-        Address: 's;
 
-    fn make_connection(&self, req: Address) -> Self::Future<'_>;
+    #[cfg(feature = "service_send")]
+    fn make_connection(
+        &self,
+        req: Address,
+    ) -> impl Future<Output = Result<Self::Connection, Self::Error>> + Send;
+    #[cfg(not(feature = "service_send"))]
+    fn make_connection(
+        &self,
+        req: Address,
+    ) -> impl Future<Output = Result<Self::Connection, Self::Error>>;
 }
 
 impl<S, Address> Sealed<(Address,)> for S where S: UnaryService<Address> {}
@@ -28,9 +33,19 @@ where
 {
     type Connection = S::Response;
     type Error = S::Error;
-    type Future<'s> = impl Future<Output = Result<Self::Connection, Self::Error>> + Send + 's where Self: 's, Address:'s;
 
-    fn make_connection(&self, addr: Address) -> Self::Future<'_> {
+    #[cfg(feature = "service_send")]
+    fn make_connection(
+        &self,
+        addr: Address,
+    ) -> impl Future<Output = Result<Self::Connection, Self::Error>> + Send {
+        self.call(addr)
+    }
+    #[cfg(not(feature = "service_send"))]
+    fn make_connection(
+        &self,
+        addr: Address,
+    ) -> impl Future<Output = Result<Self::Connection, Self::Error>> {
         self.call(addr)
     }
 }

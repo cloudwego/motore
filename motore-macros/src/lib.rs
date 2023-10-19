@@ -42,7 +42,8 @@ pub fn service(_args: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 fn expand(item: &mut ItemImpl) -> Result<(), syn::Error> {
-    let generic_params = &item.generics.params;
+    let generic_params: &syn::punctuated::Punctuated<syn::GenericParam, syn::token::Comma> =
+        &item.generics.params;
     let call_method = item
         .items
         .iter_mut()
@@ -89,7 +90,7 @@ fn expand(item: &mut ItemImpl) -> Result<(), syn::Error> {
         }
     };
 
-    let cx_is_generic = generic_params
+    let _cx_is_generic = generic_params
         .iter()
         .filter_map(|p| match p {
             syn::GenericParam::Type(t) => Some(t),
@@ -128,9 +129,16 @@ fn expand(item: &mut ItemImpl) -> Result<(), syn::Error> {
         }
     };
     sig.asyncness = None;
-    sig.generics = parse_quote!(<'cx, 's>);
-    sig.generics.where_clause = Some(parse_quote!(where 's: 'cx));
-    sig.output = parse_quote!(-> Self::Future<'cx>);
+    sig.generics = parse_quote!(<'s, 'cx>);
+    // sig.generics.where_clause = Some(parse_quote!(where 's: 'cx));
+    #[cfg(feature = "service_send")]
+    {
+        sig.output = parse_quote!(-> impl ::std::future::Future<Output = Result<Self::Response, Self::Error>> + Send);
+    }
+    #[cfg(not(feature = "service_send"))]
+    {
+        sig.output = parse_quote!(-> impl ::std::future::Future<Output = Result<Self::Response, Self::Error>>);
+    }
     sig.inputs[0] = parse_quote!(&'s self);
     let old_stmts = &call_method.block.stmts;
     call_method.block.stmts = vec![parse_quote!(async move { #(#old_stmts)* })];
@@ -143,14 +151,14 @@ fn expand(item: &mut ItemImpl) -> Result<(), syn::Error> {
         type Error = #err_ty;
     ));
 
-    let cx_bound = cx_is_generic.then(|| Some(quote!(Cx: 'cx,))).into_iter();
+    // let cx_bound = cx_is_generic.then(|| Some(quote!(Cx: 'cx,))).into_iter();
 
-    item.items.push(parse_quote!(
-       type Future<'cx> = impl ::std::future::Future<Output = Result<Self::Response, Self::Error>> + 'cx
-        where
-            #(#cx_bound)*
-            Self:'cx;
-    ));
+    // item.items.push(parse_quote!(
+    //    type Future<'cx> = impl ::std::future::Future<Output = Result<Self::Response,
+    // Self::Error>> + 'cx     where
+    //         #(#cx_bound)*
+    //         Self:'cx;
+    // ));
 
     Ok(())
 }

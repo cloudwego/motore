@@ -1,6 +1,6 @@
 [package]
 name = "motore"
-version = "0.3.3"
+version = "0.4.0"
 edition = "2021"
 description = """
 Motore is a library of modular and reusable components for building robust
@@ -21,7 +21,7 @@ keywords = ["io", "async", "non-blocking", "futures", "service"]
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-motore-macros = { path = "../motore-macros", version = "0.3" }
+motore-macros = { path = "../motore-macros", version = "0.4" }
 
 futures = "0.3"
 tokio = { version = "1", features = ["time", "macros"] }
@@ -32,7 +32,11 @@ tower = { version = "0.4", optional = true }
 http = "0.2"
 
 [features]
+default = ["service_send"]
+# enable the tower adapter
 tower = ["dep:tower"]
+# indicates the Service should be Send
+service_send = ["motore-macros/service_send"]
 
 [package.metadata.docs.rs]
 all-features = true

@@ -14,9 +14,7 @@ use super::Layer;
 /// # Example
 ///
 /// ```rust
-/// # #![feature(type_alias_impl_trait)]
 /// #
-/// # use futures::Future;
 /// # use motore::layer::{Layer, layer_fn};
 /// # use motore::service::{service_fn, Service, ServiceFn};
 /// # use std::convert::Infallible;
@@ -30,24 +28,22 @@ use super::Layer;
 ///
 /// impl<S, Cx, Request> Service<Cx, Request> for LogService<S>
 /// where
-///     S: Service<Cx, Request>,
-///     Request: fmt::Debug,
+///     S: Service<Cx, Request> + Send + Sync,
+///     Request: fmt::Debug + Send,
+///     Cx: Send,
 /// {
 ///     type Response = S::Response;
 ///     type Error = S::Error;
-///     type Future<'cx> = S::Future<'cx>
-/// where
-///     Cx: 'cx,
-///     S: 'cx;
 ///
-///     fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: Request) -> Self::Future<'cx>
-///     where
-///         's: 'cx,
-///     {
+///     async fn call<'s, 'cx>(
+///         &'s self,
+///         cx: &'cx mut Cx,
+///         req: Request,
+///     ) -> Result<Self::Response, Self::Error> {
 ///         // Log the request
 ///         println!("req = {:?}, target = {:?}", req, self.target);
 ///
-///         self.service.call(cx, req)
+///         self.service.call(cx, req).await
 ///     }
 /// }
 ///
