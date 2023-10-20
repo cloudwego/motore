@@ -178,7 +178,7 @@ A good commit message should describe what changed and why, also known as the
 Sample complete commit message:
 
 ```txt
-fix(layer): fix layer doesn't compile with latest GAT
+fix(layer): fix layer doesn't compile with latest nightly
 
 Body of commit message is a few lines of text, explaining things
 in more detail, possibly giving some background about the issue
