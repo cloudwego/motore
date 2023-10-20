@@ -8,7 +8,7 @@
 [actions-badge]: https://github.com/cloudwego/motore/actions/workflows/ci.yaml/badge.svg
 [actions-url]: https://github.com/cloudwego/motore/actions
 
-Motore is an async middleware abstraction powered by GAT and TAIT.
+Motore is an async middleware abstraction powered by AFIT and RPITIT.
 
 Around Motore, we build modular and reusable components for building robust networking clients and servers.
 
