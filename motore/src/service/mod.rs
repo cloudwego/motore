@@ -6,7 +6,10 @@
 
 use std::{fmt, future::Future, sync::Arc};
 
+#[cfg(feature = "service_send")]
 use futures::future::BoxFuture;
+#[cfg(not(feature = "service_send"))]
+use futures::future::LocalBoxFuture as BoxFuture;
 
 mod ext;
 mod service_fn;
@@ -45,10 +48,6 @@ pub use tower_adapter::*;
 /// As an example, here is how an HTTP request is processed by a server:
 ///
 /// ```rust
-/// #![feature(impl_trait_in_assoc_type)]
-///
-/// use std::future::Future;
-///
 /// use http::{Request, Response, StatusCode};
 /// use motore::Service;
 ///
@@ -60,12 +59,12 @@ pub use tower_adapter::*;
 /// {
 ///     type Response = Response<Vec<u8>>;
 ///     type Error = http::Error;
-///     type Future<'cx> = impl Future<Output = Result<Self::Response, Self::Error>> + 'cx;
 ///
-///     fn call<'cx, 's>(&'s self, _cx: &'cx mut Cx, _req: Request<Vec<u8>>) -> Self::Future<'cx>
-///     where
-///         's: 'cx,
-///     {
+///     async fn call<'s, 'cx>(
+///         &'s self,
+///         _cx: &'cx mut Cx,
+///         _req: Request<Vec<u8>>,
+///     ) -> Result<Self::Response, Self::Error> {
 ///         // create the body
 ///         let body: Vec<u8> = "hello, world!\n".as_bytes().to_owned();
 ///         // Create the HTTP response
@@ -73,8 +72,8 @@ pub use tower_adapter::*;
 ///             .status(StatusCode::OK)
 ///             .body(body)
 ///             .expect("Unable to create `http::Response`");
-///         // create a response in a future.
-///         async { Ok(resp) }
+///         // create a response in a future and return
+///         async { Ok(resp) }.await
 ///     }
 /// }
 /// ```
@@ -94,16 +93,21 @@ pub trait Service<Cx, Request> {
     /// Errors produced by the service.
     type Error;
 
-    /// The future response value.
-    type Future<'cx>: Future<Output = Result<Self::Response, Self::Error>> + Send + 'cx
-    where
-        Cx: 'cx,
-        Self: 'cx;
+    /// Process the request and return the response asynchronously.
+    #[cfg(feature = "service_send")]
+    fn call<'s, 'cx>(
+        &'s self,
+        cx: &'cx mut Cx,
+        req: Request,
+    ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send;
 
     /// Process the request and return the response asynchronously.
-    fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: Request) -> Self::Future<'cx>
-    where
-        's: 'cx;
+    #[cfg(not(feature = "service_send"))]
+    fn call<'s, 'cx>(
+        &'s self,
+        cx: &'cx mut Cx,
+        req: Request,
+    ) -> impl Future<Output = Result<Self::Response, Self::Error>>;
 }
 
 macro_rules! impl_service_ref {
@@ -116,12 +120,20 @@ macro_rules! impl_service_ref {
 
             type Error = T::Error;
 
-            type Future<'cx> = T::Future<'cx> where Cx: 'cx, Self: 'cx;
-
-            fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: Req) -> Self::Future<'cx>
-            where
-                's: 'cx,
-            {
+            #[cfg(feature = "service_send")]
+            fn call<'s, 'cx>(
+                &'s self,
+                cx: &'cx mut Cx,
+                req: Req,
+            ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send {
+                (&**self).call(cx, req)
+            }
+            #[cfg(not(feature = "service_send"))]
+            fn call<'s, 'cx>(
+                &'s self,
+                cx: &'cx mut Cx,
+                req: Req,
+            ) -> impl Future<Output = Result<Self::Response, Self::Error>> {
                 (&**self).call(cx, req)
             }
         }
@@ -141,9 +153,15 @@ macro_rules! impl_unary_service_ref {
 
             type Error = T::Error;
 
-            type Future<'s> = T::Future<'s> where Self: 's;
-
-            fn call(&self, req: Req) -> Self::Future<'_> {
+            #[cfg(feature = "service_send")]
+            fn call(
+                &self,
+                req: Req,
+            ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send {
+                (&**self).call(req)
+            }
+            #[cfg(not(feature = "service_send"))]
+            fn call(&self, req: Req) -> impl Future<Output = Result<Self::Response, Self::Error>> {
                 (&**self).call(req)
             }
         }
@@ -155,11 +173,13 @@ pub trait UnaryService<Request> {
     type Response;
     type Error;
 
-    type Future<'s>: Future<Output = Result<Self::Response, Self::Error>> + Send + 's
-    where
-        Self: 's;
-
-    fn call(&self, req: Request) -> Self::Future<'_>;
+    #[cfg(feature = "service_send")]
+    fn call(
+        &self,
+        req: Request,
+    ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send;
+    #[cfg(not(feature = "service_send"))]
+    fn call(&self, req: Request) -> impl Future<Output = Result<Self::Response, Self::Error>>;
 }
 
 impl_unary_service_ref!(Arc);
@@ -176,11 +196,28 @@ pub struct BoxService<Cx, T, U, E> {
 
 impl<Cx, T, U, E> BoxService<Cx, T, U, E> {
     /// Create a new `BoxService`.
+    #[cfg(feature = "service_send")]
     pub fn new<S>(s: S) -> Self
     where
         S: Service<Cx, T, Response = U, Error = E> + Send + Sync + 'static,
         T: 'static,
-        for<'cx> S::Future<'cx>: Send,
+    {
+        let raw = Box::into_raw(Box::new(s)) as *mut ();
+        BoxService {
+            raw,
+            vtable: ServiceVtable {
+                call: call::<Cx, T, S>,
+                drop: drop::<S>,
+            },
+        }
+    }
+
+    /// Create a new `BoxService`.
+    #[cfg(not(feature = "service_send"))]
+    pub fn new<S>(s: S) -> Self
+    where
+        S: Service<Cx, T, Response = U, Error = E> + 'static,
+        T: 'static,
     {
         let raw = Box::into_raw(Box::new(s)) as *mut ();
         BoxService {
@@ -210,14 +247,20 @@ impl<Cx, T, U, E> Service<Cx, T> for BoxService<Cx, T, U, E> {
 
     type Error = E;
 
-    type Future<'cx> = BoxFuture<'cx, Result<U, E>>
-    where
-        Self: 'cx;
-
-    fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: T) -> Self::Future<'cx>
-    where
-        's: 'cx,
-    {
+    #[cfg(feature = "service_send")]
+    fn call<'s, 'cx>(
+        &'s self,
+        cx: &'cx mut Cx,
+        req: T,
+    ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send {
+        unsafe { (self.vtable.call)(self.raw, cx, req) }
+    }
+    #[cfg(not(feature = "service_send"))]
+    fn call<'s, 'cx>(
+        &'s self,
+        cx: &'cx mut Cx,
+        req: T,
+    ) -> impl Future<Output = Result<Self::Response, Self::Error>> {
         unsafe { (self.vtable.call)(self.raw, cx, req) }
     }
 }
@@ -225,8 +268,9 @@ impl<Cx, T, U, E> Service<Cx, T> for BoxService<Cx, T, U, E> {
 /// # Safety
 ///
 /// The contained `Service` must be `Send` and `Sync` required by the bounds of `new` and `clone`.
+#[cfg(feature = "service_send")]
 unsafe impl<Cx, T, U, E> Send for BoxService<Cx, T, U, E> {}
-
+#[cfg(feature = "service_send")]
 unsafe impl<Cx, T, U, E> Sync for BoxService<Cx, T, U, E> {}
 
 struct ServiceVtable<Cx, T, U, E> {
@@ -241,6 +285,20 @@ struct ServiceVtable<Cx, T, U, E> {
 ///
 /// This is similar to [`BoxService`](BoxService) except the resulting
 /// service implements [`Clone`].
+#[cfg(feature = "service_send")]
+pub struct BoxCloneService<Cx, T, U, E> {
+    raw: *mut (),
+    vtable: CloneServiceVtable<Cx, T, U, E>,
+}
+
+/// A [`Clone`] boxed [`Service`].
+///
+/// [`BoxCloneService`] turns a service into a trait object, allowing the
+/// response future type to be dynamic, and allowing the service to be cloned.
+///
+/// This is similar to [`BoxService`](BoxService) except the resulting
+/// service implements [`Clone`].
+#[cfg(not(feature = "service_send"))]
 pub struct BoxCloneService<Cx, T, U, E> {
     raw: *mut (),
     vtable: CloneServiceVtable<Cx, T, U, E>,
@@ -248,11 +306,29 @@ pub struct BoxCloneService<Cx, T, U, E> {
 
 impl<Cx, T, U, E> BoxCloneService<Cx, T, U, E> {
     /// Create a new `BoxCloneService`.
+    #[cfg(feature = "service_send")]
     pub fn new<S>(s: S) -> Self
     where
         S: Service<Cx, T, Response = U, Error = E> + Clone + Send + Sync + 'static,
         T: 'static,
-        for<'cx> S::Future<'cx>: Send,
+    {
+        let raw = Box::into_raw(Box::new(s)) as *mut ();
+        BoxCloneService {
+            raw,
+            vtable: CloneServiceVtable {
+                call: call::<Cx, T, S>,
+                clone: clone::<Cx, T, S>,
+                drop: drop::<S>,
+            },
+        }
+    }
+
+    /// Create a new `BoxCloneService`.
+    #[cfg(not(feature = "service_send"))]
+    pub fn new<S>(s: S) -> Self
+    where
+        S: Service<Cx, T, Response = U, Error = E> + Clone + 'static,
+        T: 'static,
     {
         let raw = Box::into_raw(Box::new(s)) as *mut ();
         BoxCloneService {
@@ -289,14 +365,20 @@ impl<Cx, T, U, E> Service<Cx, T> for BoxCloneService<Cx, T, U, E> {
 
     type Error = E;
 
-    type Future<'cx> = BoxFuture<'cx, Result<U, E>>
-    where
-        Self: 'cx;
-
-    fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: T) -> Self::Future<'cx>
-    where
-        's: 'cx,
-    {
+    #[cfg(feature = "service_send")]
+    fn call<'s, 'cx>(
+        &'s self,
+        cx: &'cx mut Cx,
+        req: T,
+    ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send {
+        unsafe { (self.vtable.call)(self.raw, cx, req) }
+    }
+    #[cfg(not(feature = "service_send"))]
+    fn call<'s, 'cx>(
+        &'s self,
+        cx: &'cx mut Cx,
+        req: T,
+    ) -> impl Future<Output = Result<Self::Response, Self::Error>> {
         unsafe { (self.vtable.call)(self.raw, cx, req) }
     }
 }
@@ -304,8 +386,9 @@ impl<Cx, T, U, E> Service<Cx, T> for BoxCloneService<Cx, T, U, E> {
 /// # Safety
 ///
 /// The contained `Service` must be `Send` and `Sync` required by the bounds of `new` and `clone`.
+#[cfg(feature = "service_send")]
 unsafe impl<Cx, T, U, E> Send for BoxCloneService<Cx, T, U, E> {}
-
+#[cfg(feature = "service_send")]
 unsafe impl<Cx, T, U, E> Sync for BoxCloneService<Cx, T, U, E> {}
 
 struct CloneServiceVtable<Cx, T, U, E> {
@@ -322,18 +405,27 @@ fn call<Cx, Req, S>(
 where
     Req: 'static,
     S: Service<Cx, Req> + 'static,
-    for<'cx> S::Future<'cx>: Send,
 {
     let fut = S::call(unsafe { (raw as *mut S).as_mut().unwrap() }, cx, req);
     Box::pin(fut)
 }
 
+#[cfg(feature = "service_send")]
 fn clone<Cx, Req, S: Clone + Send + Service<Cx, Req> + 'static + Sync>(
     raw: *mut (),
 ) -> BoxCloneService<Cx, Req, S::Response, S::Error>
 where
     Req: 'static,
-    for<'cx> S::Future<'cx>: Send,
+{
+    BoxCloneService::new(S::clone(unsafe { (raw as *mut S).as_ref().unwrap() }))
+}
+
+#[cfg(not(feature = "service_send"))]
+fn clone<Cx, Req, S: Clone + Service<Cx, Req> + 'static>(
+    raw: *mut (),
+) -> BoxCloneService<Cx, Req, S::Response, S::Error>
+where
+    Req: 'static,
 {
     BoxCloneService::new(S::clone(unsafe { (raw as *mut S).as_ref().unwrap() }))
 }

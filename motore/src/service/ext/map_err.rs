@@ -1,4 +1,6 @@
-use futures::{Future, TryFutureExt};
+use std::future::Future;
+
+use futures::TryFutureExt;
 
 use crate::Service;
 
@@ -20,15 +22,20 @@ where
 
     type Error = E;
 
-    type Future<'cx> = impl Future<Output = Result<Self::Response, Self::Error>> + 'cx
-    where
-        Cx: 'cx,
-        Self: 'cx;
-
-    fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: Req) -> Self::Future<'cx>
-    where
-        's: 'cx,
-    {
+    #[cfg(feature = "service_send")]
+    fn call<'s, 'cx>(
+        &'s self,
+        cx: &'cx mut Cx,
+        req: Req,
+    ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send {
+        self.inner.call(cx, req).map_err(self.f.clone())
+    }
+    #[cfg(not(feature = "service_send"))]
+    fn call<'s, 'cx>(
+        &'s self,
+        cx: &'cx mut Cx,
+        req: Req,
+    ) -> impl Future<Output = Result<Self::Response, Self::Error>> {
         self.inner.call(cx, req).map_err(self.f.clone())
     }
 }

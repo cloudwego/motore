@@ -21,7 +21,11 @@ use std::{
     task::{Context, Poll},
 };
 
-use futures::Future;
+#[cfg(feature = "service_send")]
+use futures::future::BoxFuture;
+#[cfg(not(feature = "service_send"))]
+use futures::future::LocalBoxFuture;
+use futures::{Future, FutureExt};
 
 use crate::Service;
 
@@ -58,16 +62,19 @@ impl<S, F, Cx, MotoreReq> Tower<S, F, Cx, MotoreReq> {
     }
 }
 
+#[cfg(feature = "service_send")]
 impl<S, F, Cx, MotoreReq, TowerReq> tower::Service<TowerReq> for Tower<S, F, Cx, MotoreReq>
 where
-    S: Service<Cx, MotoreReq> + Clone,
+    S: Service<Cx, MotoreReq> + Clone + 'static + Send,
     F: FnOnce(TowerReq) -> (Cx, MotoreReq) + Clone,
+    MotoreReq: 'static + Send,
+    Cx: 'static + Send,
 {
     type Response = S::Response;
 
     type Error = S::Error;
 
-    type Future = impl Future<Output = Result<Self::Response, Self::Error>>;
+    type Future = BoxFuture<'static, Result<Self::Response, Self::Error>>;
 
     fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Poll::Ready(Ok(()))
@@ -76,7 +83,32 @@ where
     fn call(&mut self, req: TowerReq) -> Self::Future {
         let inner = self.inner.clone();
         let (mut cx, r) = (self.f.clone())(req);
-        async move { inner.call(&mut cx, r).await }
+        async move { inner.call(&mut cx, r).await }.boxed()
+    }
+}
+
+#[cfg(not(feature = "service_send"))]
+impl<S, F, Cx, MotoreReq, TowerReq> tower::Service<TowerReq> for Tower<S, F, Cx, MotoreReq>
+where
+    S: Service<Cx, MotoreReq> + Clone + 'static,
+    F: FnOnce(TowerReq) -> (Cx, MotoreReq) + Clone,
+    MotoreReq: 'static,
+    Cx: 'static,
+{
+    type Response = S::Response;
+
+    type Error = S::Error;
+
+    type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
+
+    fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        Poll::Ready(Ok(()))
+    }
+
+    fn call(&mut self, req: TowerReq) -> Self::Future {
+        let inner = self.inner.clone();
+        let (mut cx, r) = (self.f.clone())(req);
+        async move { inner.call(&mut cx, r).await }.boxed_local()
     }
 }
 
@@ -145,15 +177,21 @@ where
 
     type Error = S::Error;
 
-    type Future<'cx> = impl Future<Output = Result<Self::Response, Self::Error>> + 'cx
-    where
-        Cx: 'cx,
-        Self: 'cx;
+    #[cfg(feature = "service_send")]
+    fn call<'s, 'cx>(
+        &'s self,
+        cx: &'cx mut Cx,
+        req: MotoreReq,
+    ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send {
+        self.inner.clone().call((self.f.clone())(cx, req))
+    }
 
-    fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: MotoreReq) -> Self::Future<'cx>
-    where
-        's: 'cx,
-    {
+    #[cfg(not(feature = "service_send"))]
+    fn call<'s, 'cx>(
+        &'s self,
+        cx: &'cx mut Cx,
+        req: MotoreReq,
+    ) -> impl Future<Output = Result<Self::Response, Self::Error>> {
         self.inner.clone().call((self.f.clone())(cx, req))
     }
 }

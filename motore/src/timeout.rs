@@ -4,8 +4,6 @@
 
 use std::time::Duration;
 
-use futures::Future;
-
 use crate::{layer::Layer, service::Service, BoxError};
 
 #[derive(Clone)]
@@ -31,25 +29,22 @@ where
 
     type Error = BoxError;
 
-    type Future<'cx> = impl Future<Output = Result<S::Response, Self::Error>> + 'cx;
-
-    fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: Req) -> Self::Future<'cx>
-    where
-        's: 'cx,
-    {
-        async move {
-            match self.duration {
-                Some(duration) => {
-                    let sleep = tokio::time::sleep(duration);
-                    tokio::select! {
-                        r = self.inner.call(cx, req) => {
-                            r.map_err(Into::into)
-                        },
-                        _ = sleep => Err(std::io::Error::new(std::io::ErrorKind::TimedOut, "service time out").into()),
-                    }
+    async fn call<'s, 'cx>(
+        &'s self,
+        cx: &'cx mut Cx,
+        req: Req,
+    ) -> Result<Self::Response, Self::Error> {
+        match self.duration {
+            Some(duration) => {
+                let sleep = tokio::time::sleep(duration);
+                tokio::select! {
+                    r = self.inner.call(cx, req) => {
+                        r.map_err(Into::into)
+                    },
+                    _ = sleep => Err(std::io::Error::new(std::io::ErrorKind::TimedOut, "service time out").into()),
                 }
-                None => self.inner.call(cx, req).await.map_err(Into::into),
             }
+            None => self.inner.call(cx, req).await.map_err(Into::into),
         }
     }
 }

@@ -1,5 +1,3 @@
-use futures::Future;
-
 use crate::{layer::Layer, service::Service};
 
 /// Combine two different service types into a single type.
@@ -39,20 +37,14 @@ where
 
     type Error = A::Error;
 
-    type Future<'cx> = impl Future<Output = Result<Self::Response, Self::Error>> + 'cx
-    where
-        Cx: 'cx,
-        Self: 'cx;
-
-    fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: Req) -> Self::Future<'cx>
-    where
-        's: 'cx,
-    {
-        async move {
-            match self {
-                Either::A(s) => s.call(cx, req).await,
-                Either::B(s) => s.call(cx, req).await,
-            }
+    async fn call<'s, 'cx>(
+        &'s self,
+        cx: &'cx mut Cx,
+        req: Req,
+    ) -> Result<Self::Response, Self::Error> {
+        match self {
+            Either::A(s) => s.call(cx, req).await,
+            Either::B(s) => s.call(cx, req).await,
         }
     }
 }

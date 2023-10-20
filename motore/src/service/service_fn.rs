@@ -11,9 +11,6 @@ use crate::service::Service;
 /// # Example
 ///
 /// ```rust
-/// # #![feature(type_alias_impl_trait)]
-/// #
-/// # use futures::Future;
 /// # use motore::service::{service_fn, Service, ServiceFn};
 /// # use motore::BoxError;
 /// #
@@ -51,15 +48,12 @@ where
 {
     type Response = R;
     type Error = E;
-    type Future<'cx> = impl Future<Output= Result<R, E>> + 'cx
-    where
-        Cx: 'cx,
-        Self: 'cx;
 
-    fn call<'cx, 's>(&'s self, cx: &'cx mut Cx, req: Request) -> Self::Future<'cx>
-    where
-        's: 'cx,
-    {
+    fn call<'s, 'cx>(
+        &'s self,
+        cx: &'cx mut Cx,
+        req: Request,
+    ) -> impl Future<Output = Result<Self::Response, Self::Error>> {
         (self.f).call(cx, req)
     }
 }
