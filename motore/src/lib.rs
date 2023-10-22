@@ -1,3 +1,5 @@
+#![feature(return_position_impl_trait_in_trait)]
+#![feature(async_fn_in_trait)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc(
     html_logo_url = "https://github.com/cloudwego/motore/raw/main/.github/assets/logo.png?sanitize=true"
