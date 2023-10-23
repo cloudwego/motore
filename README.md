@@ -30,7 +30,11 @@ pub trait Service<Cx, Request> {
     type Error;
 
     /// Process the request and return the response asynchronously.
-    async fn call<'s, 'cx>(&'s self, cx: &'cx mut Cx, req: Request) -> Result<Self::Response, Self::Error>;
+    fn call<'s, 'cx>(
+        &'s self,
+        cx: &'cx mut Cx,
+        req: Request,
+    ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send;
 }
 ```
 
