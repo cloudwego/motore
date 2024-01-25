@@ -93,7 +93,7 @@ where
 
 ### Where's the `poll_ready`(a.k.a. backpressure)?
 
-https://www.cloudwego.io/zh/docs/motore/faq/q2_pull_ready/
+https://www.cloudwego.io/zh/docs/motore/faq/q1_pull_ready/
 
 ## License
 
