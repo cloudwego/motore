@@ -35,11 +35,7 @@ use super::Layer;
 ///     type Response = S::Response;
 ///     type Error = S::Error;
 ///
-///     async fn call<'s, 'cx>(
-///         &'s self,
-///         cx: &'cx mut Cx,
-///         req: Request,
-///     ) -> Result<Self::Response, Self::Error> {
+///     async fn call(&self, cx: &mut Cx, req: Request) -> Result<Self::Response, Self::Error> {
 ///         // Log the request
 ///         println!("req = {:?}, target = {:?}", req, self.target);
 ///

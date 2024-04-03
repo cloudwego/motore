@@ -37,11 +37,7 @@ where
 
     type Error = A::Error;
 
-    async fn call<'s, 'cx>(
-        &'s self,
-        cx: &'cx mut Cx,
-        req: Req,
-    ) -> Result<Self::Response, Self::Error> {
+    async fn call(&self, cx: &mut Cx, req: Req) -> Result<Self::Response, Self::Error> {
         match self {
             Either::A(s) => s.call(cx, req).await,
             Either::B(s) => s.call(cx, req).await,

@@ -1,6 +1,6 @@
 [package]
 name = "motore-macros"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
 description = """
 Motore's proc macros.
@@ -10,6 +10,7 @@ readme = "README.md"
 homepage = "https://cloudwego.io/docs/motore/"
 repository = "https://github.com/cloudwego/motore"
 license = "MIT OR Apache-2.0"
+rust-version = "1.77.0"
 authors = ["Motore Team <motore@cloudwego.io>"]
 categories = ["asynchronous"]
 keywords = ["motore", "macro"]

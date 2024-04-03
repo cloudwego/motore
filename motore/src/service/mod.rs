@@ -60,9 +60,9 @@ pub use tower_adapter::*;
 ///     type Response = Response<Vec<u8>>;
 ///     type Error = http::Error;
 ///
-///     async fn call<'s, 'cx>(
-///         &'s self,
-///         _cx: &'cx mut Cx,
+///     async fn call(
+///         &self,
+///         _cx: &mut Cx,
 ///         _req: Request<Vec<u8>>,
 ///     ) -> Result<Self::Response, Self::Error> {
 ///         // create the body
@@ -95,17 +95,17 @@ pub trait Service<Cx, Request> {
 
     /// Process the request and return the response asynchronously.
     #[cfg(feature = "service_send")]
-    fn call<'s, 'cx>(
-        &'s self,
-        cx: &'cx mut Cx,
+    fn call(
+        &self,
+        cx: &mut Cx,
         req: Request,
     ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send;
 
     /// Process the request and return the response asynchronously.
     #[cfg(not(feature = "service_send"))]
-    fn call<'s, 'cx>(
-        &'s self,
-        cx: &'cx mut Cx,
+    fn call(
+        &self,
+        cx: &mut Cx,
         req: Request,
     ) -> impl Future<Output = Result<Self::Response, Self::Error>>;
 }
@@ -121,17 +121,17 @@ macro_rules! impl_service_ref {
             type Error = T::Error;
 
             #[cfg(feature = "service_send")]
-            fn call<'s, 'cx>(
-                &'s self,
-                cx: &'cx mut Cx,
+            fn call(
+                &self,
+                cx: &mut Cx,
                 req: Req,
             ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send {
                 (&**self).call(cx, req)
             }
             #[cfg(not(feature = "service_send"))]
-            fn call<'s, 'cx>(
-                &'s self,
-                cx: &'cx mut Cx,
+            fn call(
+                &self,
+                cx: &mut Cx,
                 req: Req,
             ) -> impl Future<Output = Result<Self::Response, Self::Error>> {
                 (&**self).call(cx, req)
@@ -248,17 +248,17 @@ impl<Cx, T, U, E> Service<Cx, T> for BoxService<Cx, T, U, E> {
     type Error = E;
 
     #[cfg(feature = "service_send")]
-    fn call<'s, 'cx>(
-        &'s self,
-        cx: &'cx mut Cx,
+    fn call(
+        &self,
+        cx: &mut Cx,
         req: T,
     ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send {
         unsafe { (self.vtable.call)(self.raw, cx, req) }
     }
     #[cfg(not(feature = "service_send"))]
-    fn call<'s, 'cx>(
-        &'s self,
-        cx: &'cx mut Cx,
+    fn call(
+        &self,
+        cx: &mut Cx,
         req: T,
     ) -> impl Future<Output = Result<Self::Response, Self::Error>> {
         unsafe { (self.vtable.call)(self.raw, cx, req) }
@@ -366,17 +366,17 @@ impl<Cx, T, U, E> Service<Cx, T> for BoxCloneService<Cx, T, U, E> {
     type Error = E;
 
     #[cfg(feature = "service_send")]
-    fn call<'s, 'cx>(
-        &'s self,
-        cx: &'cx mut Cx,
+    fn call(
+        &self,
+        cx: &mut Cx,
         req: T,
     ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send {
         unsafe { (self.vtable.call)(self.raw, cx, req) }
     }
     #[cfg(not(feature = "service_send"))]
-    fn call<'s, 'cx>(
-        &'s self,
-        cx: &'cx mut Cx,
+    fn call(
+        &self,
+        cx: &mut Cx,
         req: T,
     ) -> impl Future<Output = Result<Self::Response, Self::Error>> {
         unsafe { (self.vtable.call)(self.raw, cx, req) }

@@ -23,17 +23,17 @@ where
     type Error = E;
 
     #[cfg(feature = "service_send")]
-    fn call<'s, 'cx>(
-        &'s self,
-        cx: &'cx mut Cx,
+    fn call(
+        &self,
+        cx: &mut Cx,
         req: Req,
     ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send {
         self.inner.call(cx, req).map_err(self.f.clone())
     }
     #[cfg(not(feature = "service_send"))]
-    fn call<'s, 'cx>(
-        &'s self,
-        cx: &'cx mut Cx,
+    fn call(
+        &self,
+        cx: &mut Cx,
         req: Req,
     ) -> impl Future<Output = Result<Self::Response, Self::Error>> {
         self.inner.call(cx, req).map_err(self.f.clone())
