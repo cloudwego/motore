@@ -49,9 +49,9 @@ where
     type Response = R;
     type Error = E;
 
-    fn call<'s, 'cx>(
-        &'s self,
-        cx: &'cx mut Cx,
+    fn call(
+        &self,
+        cx: &mut Cx,
         req: Request,
     ) -> impl Future<Output = Result<Self::Response, Self::Error>> {
         (self.f).call(cx, req)

@@ -30,7 +30,7 @@ pub trait Service<Cx, Request> {
     type Error;
 
     /// Process the request and return the response asynchronously.
-    async fn call<'s, 'cx>(&'s self, cx: &'cx mut Cx, req: Request) -> Result<Self::Response, Self::Error>;
+    async fn call(&self, cx: &mut Cx, req: Request) -> Result<Self::Response, Self::Error>;
 }
 ```
 
@@ -55,7 +55,7 @@ where
 
     type Error = BoxError;
 
-    async fn call<'s, 'cx>(&'s self, cx: &'cx mut Cx, req: Req) -> Result<Self::Response, Self::Error> {
+    async fn call(&self, cx: &mut Cx, req: Req) -> Result<Self::Response, Self::Error> {
         let sleep = tokio::time::sleep(self.duration);
         tokio::select! {
             r = self.inner.call(cx, req) => {

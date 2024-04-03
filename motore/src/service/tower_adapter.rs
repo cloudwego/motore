@@ -178,18 +178,18 @@ where
     type Error = S::Error;
 
     #[cfg(feature = "service_send")]
-    fn call<'s, 'cx>(
-        &'s self,
-        cx: &'cx mut Cx,
+    fn call(
+        &self,
+        cx: &mut Cx,
         req: MotoreReq,
     ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send {
         self.inner.clone().call((self.f.clone())(cx, req))
     }
 
     #[cfg(not(feature = "service_send"))]
-    fn call<'s, 'cx>(
-        &'s self,
-        cx: &'cx mut Cx,
+    fn call(
+        &self,
+        cx: &mut Cx,
         req: MotoreReq,
     ) -> impl Future<Output = Result<Self::Response, Self::Error>> {
         self.inner.clone().call((self.f.clone())(cx, req))

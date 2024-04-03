@@ -11,7 +11,6 @@ use syn::{parse_macro_input, parse_quote, spanned::Spanned, ItemImpl, PatType, T
 /// # Example
 ///
 /// ```rust
-/// #![feature(impl_trait_in_assoc_type)]
 /// use motore::{service, Service};
 ///
 /// pub struct S<I> {
@@ -71,10 +70,7 @@ fn expand(item: &mut ItemImpl) -> Result<(), syn::Error> {
 
     let cx_type = match &mut sig.inputs[1] {
         syn::FnArg::Typed(PatType { ty, .. }) => match &mut **ty {
-            Type::Reference(ty) if ty.mutability.is_some() => {
-                ty.lifetime = Some(parse_quote!('cx));
-                (*ty.elem).clone()
-            }
+            Type::Reference(ty) if ty.mutability.is_some() => (*ty.elem).clone(),
             _ => {
                 return Err(syn::Error::new(
                     sig.inputs[1].span(),
@@ -129,7 +125,6 @@ fn expand(item: &mut ItemImpl) -> Result<(), syn::Error> {
         }
     };
     sig.asyncness = None;
-    sig.generics = parse_quote!(<'s, 'cx>);
     // sig.generics.where_clause = Some(parse_quote!(where 's: 'cx));
     #[cfg(feature = "service_send")]
     {
@@ -139,7 +134,7 @@ fn expand(item: &mut ItemImpl) -> Result<(), syn::Error> {
     {
         sig.output = parse_quote!(-> impl ::std::future::Future<Output = Result<Self::Response, Self::Error>>);
     }
-    sig.inputs[0] = parse_quote!(&'s self);
+    sig.inputs[0] = parse_quote!(&self);
     let old_stmts = &call_method.block.stmts;
     call_method.block.stmts = vec![parse_quote!(async move { #(#old_stmts)* })];
 
@@ -150,15 +145,6 @@ fn expand(item: &mut ItemImpl) -> Result<(), syn::Error> {
     item.items.push(parse_quote!(
         type Error = #err_ty;
     ));
-
-    // let cx_bound = cx_is_generic.then(|| Some(quote!(Cx: 'cx,))).into_iter();
-
-    // item.items.push(parse_quote!(
-    //    type Future<'cx> = impl ::std::future::Future<Output = Result<Self::Response,
-    // Self::Error>> + 'cx     where
-    //         #(#cx_bound)*
-    //         Self:'cx;
-    // ));
 
     Ok(())
 }

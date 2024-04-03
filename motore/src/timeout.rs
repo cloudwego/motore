@@ -29,11 +29,7 @@ where
 
     type Error = BoxError;
 
-    async fn call<'s, 'cx>(
-        &'s self,
-        cx: &'cx mut Cx,
-        req: Req,
-    ) -> Result<Self::Response, Self::Error> {
+    async fn call(&self, cx: &mut Cx, req: Req) -> Result<Self::Response, Self::Error> {
         match self.duration {
             Some(duration) => {
                 let sleep = tokio::time::sleep(duration);
