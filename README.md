@@ -1,4 +1,4 @@
-![Motore](https://github.com/cloudwego/motore/raw/main/.github/assets/logo.png?sanitize=true)
+<img width="622" alt="image" src="https://github.com/cloudwego/motore/assets/16001996/25941d54-4e12-413c-9dd6-a5b96ee233ee">![Motore](https://github.com/cloudwego/motore/raw/main/.github/assets/logo.png?sanitize=true)
 
 [![Crates.io](https://img.shields.io/crates/v/motore)](https://crates.io/crates/motore)
 [![Documentation](https://docs.rs/motore/badge.svg)](https://docs.rs/motore)
@@ -93,7 +93,7 @@ where
 
 ### Where's the `poll_ready`(a.k.a. backpressure)?
 
-https://www.cloudwego.io/zh/docs/motore/faq/q1_pull_ready/
+https://www.cloudwego.io/docs/volo/faq/#where-did-poll_ready-backpressure-go
 
 ## License
 
