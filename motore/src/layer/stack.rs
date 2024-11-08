@@ -11,7 +11,7 @@ pub struct Stack<Inner, Outer> {
 
 impl<Inner, Outer> Stack<Inner, Outer> {
     /// Create a new `Stack`.
-    pub fn new(inner: Inner, outer: Outer) -> Self {
+    pub const fn new(inner: Inner, outer: Outer) -> Self {
         Stack { inner, outer }
     }
 }

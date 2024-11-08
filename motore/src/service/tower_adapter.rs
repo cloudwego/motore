@@ -53,7 +53,7 @@ pub struct Tower<S, F, Cx, MotoreReq> {
 }
 
 impl<S, F, Cx, MotoreReq> Tower<S, F, Cx, MotoreReq> {
-    pub fn new(inner: S, f: F) -> Self {
+    pub const fn new(inner: S, f: F) -> Self {
         Self {
             inner,
             f,
@@ -162,7 +162,7 @@ pub struct Motore<S, F> {
 }
 
 impl<S, F> Motore<S, F> {
-    pub fn new(inner: S, f: F) -> Self {
+    pub const fn new(inner: S, f: F) -> Self {
         Self { inner, f }
     }
 }

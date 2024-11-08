@@ -63,7 +63,7 @@ use super::Layer;
 /// let wrapped_service = log_layer.layer(uppercase_service);
 /// ```
 /// [`Service`]: crate::Service
-pub fn layer_fn<F>(f: F) -> LayerFn<F> {
+pub const fn layer_fn<F>(f: F) -> LayerFn<F> {
     LayerFn { f }
 }
 

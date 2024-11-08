@@ -13,7 +13,7 @@ pub struct Timeout<S> {
 }
 
 impl<S> Timeout<S> {
-    pub fn new(inner: S, duration: Option<Duration>) -> Self {
+    pub const fn new(inner: S, duration: Option<Duration>) -> Self {
         Self { inner, duration }
     }
 }
@@ -51,7 +51,7 @@ pub struct TimeoutLayer {
 }
 
 impl TimeoutLayer {
-    pub fn new(duration: Option<Duration>) -> Self {
+    pub const fn new(duration: Option<Duration>) -> Self {
         TimeoutLayer { duration }
     }
 }
