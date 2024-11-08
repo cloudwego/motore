@@ -5,7 +5,7 @@ pub struct MapErrLayer<F> {
 }
 
 impl<F> MapErrLayer<F> {
-    pub fn new(f: F) -> Self {
+    pub const fn new(f: F) -> Self {
         MapErrLayer { f }
     }
 }

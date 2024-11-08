@@ -11,7 +11,7 @@ impl Default for Layers<Identity> {
 }
 
 impl<L> Layers<L> {
-    pub fn new(layer: L) -> Self {
+    pub const fn new(layer: L) -> Self {
         Layers(layer)
     }
 

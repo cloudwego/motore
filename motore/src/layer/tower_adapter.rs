@@ -26,7 +26,7 @@ pub struct TowerAdapterLayer<F, Cx, MotoreReq> {
 }
 
 impl<F, Cx, MotoreReq> TowerAdapterLayer<F, Cx, MotoreReq> {
-    pub fn new(f: F) -> Self {
+    pub const fn new(f: F) -> Self {
         Self {
             f,
             _phantom: PhantomData,
