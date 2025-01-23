@@ -60,6 +60,9 @@ jobs:
 
   test-windows:
     runs-on: [self-hosted, Windows, X64]
+    defaults:
+      run:
+        shell: pwsh
 
     steps:
     - uses: actions/checkout@v3
