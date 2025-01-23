@@ -26,7 +26,7 @@ jobs:
     runs-on: [self-hosted, Linux, amd64]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
     # - uses: Swatinem/rust-cache@v1
     - name: Run tests
@@ -38,7 +38,7 @@ jobs:
     runs-on: [self-hosted, Linux, aarch64]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       # - uses: Swatinem/rust-cache@v1
       - name: Run tests
@@ -50,9 +50,9 @@ jobs:
     runs-on: [self-hosted, macOS, ARM64]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
-    - uses: Swatinem/rust-cache@v1
+    # - uses: Swatinem/rust-cache@v1
     - name: Run tests
       run: |
         cargo check
@@ -62,9 +62,9 @@ jobs:
     runs-on: [self-hosted, Windows, X64]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
-    - uses: Swatinem/rust-cache@v1
+    # - uses: Swatinem/rust-cache@v1
     - name: Run tests
       run: |
         cargo check
@@ -74,7 +74,7 @@ jobs:
     runs-on: [self-hosted, Linux, amd64]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
       with:
         components: rustfmt, clippy
