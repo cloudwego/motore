@@ -96,6 +96,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::mem;
+
     use super::*;
 
     #[test]
@@ -111,7 +113,8 @@ mod tests {
         }
 
         let uppercase_service = service_fn(handle);
-        let _ = uppercase_service.call(&mut MotoreContext, "req".to_string());
+        mem::drop(uppercase_service.call(&mut MotoreContext, "req".to_string()));
+
         assert_eq!(
             "ServiceFn { f: motore::service::service_fn::tests::debug_impl_ok::handle }"
                 .to_string(),

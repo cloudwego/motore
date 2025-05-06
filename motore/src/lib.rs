@@ -69,7 +69,7 @@ mod tests {
             S: crate::Service<Context, Req>,
         {
             async fn call(&self, _cx: &mut Context, _req: Req) -> Result<S::Response, S::Error> {
-                todo!();
+                todo!()
             }
         }
     }
