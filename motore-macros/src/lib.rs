@@ -47,7 +47,7 @@ fn expand(item: &mut ItemImpl) -> Result<(), syn::Error> {
         .items
         .iter_mut()
         .find_map(|i| match i {
-            syn::ImplItem::Method(m) => Some(m),
+            syn::ImplItem::Fn(m) => Some(m),
             _ => None,
         })
         .expect("`call` method is required");
@@ -136,7 +136,7 @@ fn expand(item: &mut ItemImpl) -> Result<(), syn::Error> {
     }
     sig.inputs[0] = parse_quote!(&self);
     let old_stmts = &call_method.block.stmts;
-    call_method.block.stmts = vec![parse_quote!(async move { #(#old_stmts)* })];
+    call_method.block.stmts = vec![parse_quote!( { async move { #(#old_stmts)* }})];
 
     item.items.push(parse_quote!(
         type Response = #res_ty;
