@@ -215,7 +215,7 @@ dependencies = [
 
 [[package]]
 name = "motore-macros"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "motore",
  "proc-macro2",
