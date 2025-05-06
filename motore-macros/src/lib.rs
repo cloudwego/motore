@@ -34,7 +34,7 @@ pub fn service(_args: TokenStream, input: TokenStream) -> TokenStream {
     let mut item = parse_macro_input!(input as ItemImpl);
 
     if let Err(err) = expand(&mut item) {
-        return syn::Error::into_compile_error(err).into();
+        return err.into_compile_error().into();
     }
 
     TokenStream::from(quote!(#item))
