@@ -29,6 +29,9 @@ use syn::{parse_macro_input, parse_quote, spanned::Spanned, ItemImpl, PatType, T
 ///     }
 /// }
 /// ```
+#[deprecated(
+    note = "The `service` macro is no longer needed as `async fn in trait` are now stable. You can write `async fn call` directly in your `Service` implementation without this macro."
+)]
 #[proc_macro_attribute]
 pub fn service(_args: TokenStream, input: TokenStream) -> TokenStream {
     let mut item = parse_macro_input!(input as ItemImpl);

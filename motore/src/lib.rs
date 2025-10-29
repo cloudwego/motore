@@ -43,6 +43,9 @@ pub mod make;
 pub mod service;
 pub mod timeout;
 pub mod utils;
+#[deprecated(
+    note = "`async fn in trait` is stable now. You can use `async fn call` directly in your `Service` implementation without this macro."
+)]
 pub use motore_macros::service;
 pub use service::{BoxCloneService, Service, ServiceExt, UnaryService};
 
@@ -58,6 +61,7 @@ mod sealed {
 mod tests {
 
     #[test]
+    #[allow(deprecated)]
     pub fn test_service_macro() {
         pub struct Context;
         pub struct Service<S>(S);

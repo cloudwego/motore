@@ -68,28 +68,6 @@ where
 }
 ```
 
-We also provided the `#[motore::service]` macro to make writing a `Serivce` more async-native:
-
-```rust
-use motore::service;
-
-pub struct S<I> {
-    inner: I,
-}
-
-#[service]
-impl<Cx, Req, I> Service<Cx, Req> for S<I>
-where
-   Req: Send + 'static,
-   I: Service<Cx, Req> + Send + 'static + Sync,
-   Cx: Send + 'static,
-{
-    async fn call(&self, cx: &mut Cx, req: Req) -> Result<I::Response, I::Error> {
-        self.inner.call(cx, req).await
-    }
-}
-```
-
 ## FAQ
 
 ### Where's the `poll_ready`(a.k.a. backpressure)?
