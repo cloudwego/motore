@@ -203,7 +203,7 @@ dependencies = [
 
 [[package]]
 name = "motore"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "futures",
  "http",
@@ -215,7 +215,7 @@ dependencies = [
 
 [[package]]
 name = "motore-macros"
-version = "0.4.3"
+version = "0.4.4"
 dependencies = [
  "motore",
  "proc-macro2",
