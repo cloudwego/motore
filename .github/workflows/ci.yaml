@@ -23,7 +23,7 @@ jobs:
       - run: exit 0
 
   test-linux:
-    runs-on: [self-hosted, Linux, amd64]
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
@@ -35,7 +35,7 @@ jobs:
         cargo test
 
   test-linux-aarch64:
-    runs-on: [self-hosted, Linux, aarch64]
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - uses: actions/checkout@v4
@@ -47,7 +47,7 @@ jobs:
           cargo test
 
   test-macos:
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v4
@@ -59,7 +59,7 @@ jobs:
         cargo test
 
   test-windows:
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v4
@@ -71,7 +71,7 @@ jobs:
         cargo test
 
   lint:
-    runs-on: [self-hosted, Linux, amd64]
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
