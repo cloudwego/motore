@@ -11,6 +11,7 @@ mod ext;
 mod identity;
 mod layer_fn;
 mod layers;
+mod service_layer;
 mod stack;
 #[cfg(feature = "tower")]
 mod tower_adapter;
@@ -22,6 +23,7 @@ pub use self::{
     identity::Identity,
     layer_fn::{layer_fn, LayerFn},
     layers::Layers,
+    service_layer::ServiceLayerExt,
     stack::Stack,
 };
 
