@@ -91,6 +91,3 @@ For the full list, you may refer to the [CREDITS.md](https://github.com/cloudweg
 - Email: [motore@cloudwego.io](mailto:motore@cloudwego.io)
 - How to become a member: [COMMUNITY MEMBERSHIP](https://github.com/cloudwego/community/blob/main/COMMUNITY_MEMBERSHIP.md)
 - Issues: [Issues](https://github.com/cloudwego/motore/issues)
-- Feishu: Scan the QR code below with [Feishu](https://www.feishu.cn/) or [click this link](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=a17m50a7-79cd-4ece-b14c-c1586e1aa636) to join our CloudWeGo Motore user group.
-
-  <img src="https://github.com/cloudwego/motore/raw/main/.github/assets/motore-feishu-user-group.png" alt="Motore user group" width="50%" height="50%" />
